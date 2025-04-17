@@ -148,7 +148,10 @@
                             <td class="text-end">
                                 <span class="@(item.Amount > 0 ? "text-success" : "text-danger") fw-bold">
                                     @(item.Amount > 0 ? "+" : "")@item.Amount.ToString("C") 
-                                    <span class="currency-badge">@item.Currency</span>
+                                    @if (!string.IsNullOrEmpty(item.Currency))
+                                    {
+                                        <span class="badge bg-secondary ms-1">@item.Currency</span>
+                                    }
                                 </span>
                             </td>
                             <td class="text-center">

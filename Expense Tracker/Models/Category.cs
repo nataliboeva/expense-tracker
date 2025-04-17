@@ -11,7 +11,7 @@ namespace Expense_Tracker.Models
         [Column(TypeName = "nvarchar(50)")]
         public string Title { get; set; }
 
-        [Column(TypeName = "nvarchar(5)")]
+        [Column(TypeName = "nvarchar(100)")]
         public string Icon { get; set; } = "";
 
         [Column(TypeName = "nvarchar(10)")]

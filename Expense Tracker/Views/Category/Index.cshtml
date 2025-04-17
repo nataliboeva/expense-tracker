@@ -24,7 +24,6 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Icon</th>
                         <th>Category</th>
                         <th>Type</th>
                         <th class="text-center">Actions</th>
@@ -33,9 +32,6 @@
                 <tbody>
                     @foreach (var item in Model) {
                         <tr class="category-item">
-                            <td>
-                                <i class="bi @item.Icon" style="font-size: 1.5rem; color: var(--accent-primary);"></i>
-                            </td>
                             <td>
                                 <span class="category-label fw-bold">@item.Title</span>
                             </td>
