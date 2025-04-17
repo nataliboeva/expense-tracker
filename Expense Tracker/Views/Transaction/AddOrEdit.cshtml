@@ -4,9 +4,9 @@
     ViewData["Title"] = Model.TransactionId == 0 ? "Create Transaction" : "Edit Transaction";
     var currencies = new Dictionary<string, string>
     {
-        {"USD", "$ USD"},
-        {"EUR", "€ EUR"},
-        {"BGN", "лв BGN"}
+        {"USD", "USD ($)"},
+        {"EUR", "EUR (€)"},
+        {"BGN", "BGN (лв)"}
     };
 }
 
@@ -36,7 +36,7 @@
                             <option value="@category.CategoryId">
                                 @if (category.Icon != null)
                                 {
-                                    <span>@category.Icon</span>
+                                    <i class=$"{@category.Icon}"></i>
                                 }
                                 @category.Title
                             </option>

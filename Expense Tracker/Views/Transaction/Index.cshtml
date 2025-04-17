@@ -147,10 +147,10 @@
                             <td>@item.Note</td>
                             <td class="text-end">
                                 <span class="@(item.Amount > 0 ? "text-success" : "text-danger") fw-bold">
-                                    @(item.Amount > 0 ? "+" : "")@item.Amount.ToString("C") 
+                                    @(item.Amount > 0 ? "+" : "")@item.Amount.ToString("f2")
                                     @if (!string.IsNullOrEmpty(item.Currency))
                                     {
-                                        <span class="badge bg-secondary ms-1">@item.Currency</span>
+                                        <span class="currency-badge">@item.Currency</span>
                                     }
                                 </span>
                             </td>
@@ -194,6 +194,14 @@
 </div>
 
 @section Scripts {
+    <style>
+        .currency-badge {
+            font-size: 0.85em;
+            margin-left: 2px;
+            opacity: 0.8;
+        }
+    </style>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Animate transaction items
