@@ -1,0 +1,281 @@
+﻿@model Expense_Tracker.Models.Category
+
+@{
+    ViewData["Title"] = "Create Category";
+    
+    // Dictionary of Bootstrap icons for categories
+    var categoryIcons = new Dictionary<string, string>
+    {
+        // Expense Categories
+        {"bi bi-cart-fill", "Groceries"},
+        {"bi bi-shop", "Shopping"},
+        {"bi bi-car-front-fill", "Transportation"},
+        {"bi bi-airplane-fill", "Travel"},
+        {"bi bi-cup-hot-fill", "Food & Dining"},
+        {"bi bi-film", "Entertainment"},
+        {"bi bi-heart-pulse-fill", "Healthcare"},
+        {"bi bi-book-fill", "Education"},
+        {"bi bi-receipt", "Bills"},
+        {"bi bi-house-fill", "Housing"},
+        {"bi bi-lightbulb-fill", "Utilities"},
+        {"bi bi-scissors", "Personal Care"},
+        {"bi bi-bicycle", "Fitness"},
+        {"bi bi-gift-fill", "Gifts"},
+        {"bi bi-palette-fill", "Hobbies"},
+        {"bi bi-pc-display", "Technology"},
+        {"bi bi-bag-fill", "Clothing"},
+        {"bi bi-building", "Rent"},
+        {"bi bi-coin", "Taxes"},
+        {"bi bi-piggy-bank-fill", "Savings"},
+        {"bi bi-cash-coin", "Other Expense"},
+        
+        // Income Categories
+        {"bi bi-currency-dollar", "Salary"},
+        {"bi bi-laptop-fill", "Freelance"},
+        {"bi bi-graph-up-arrow", "Investments"},
+        {"bi bi-trophy-fill", "Bonus"},
+        {"bi bi-bank", "Interest"},
+        {"bi bi-wallet-fill", "Refund"},
+        {"bi bi-building-fill", "Rental Income"},
+        {"bi bi-briefcase-fill", "Business"},
+        {"bi bi-cash-stack", "Other Income"}
+    };
+    
+    var expenseIcons = categoryIcons.Where(i => !i.Value.Contains("Income") && !i.Value.StartsWith("Salary") && 
+        !i.Value.Contains("Freelance") && !i.Value.Contains("Investments") && 
+        !i.Value.Contains("Bonus") && !i.Value.Contains("Interest") && 
+        !i.Value.Contains("Rental Income") && !i.Value.Contains("Refund") && 
+        !i.Value.Contains("Business") && !i.Value.Contains("Other Income"));
+        
+    var incomeIcons = categoryIcons.Where(i => i.Value.Contains("Income") || i.Value.StartsWith("Salary") || 
+        i.Value.Contains("Freelance") || i.Value.Contains("Investments") || 
+        i.Value.Contains("Bonus") || i.Value.Contains("Interest") || 
+        i.Value.Contains("Rental Income") || i.Value.Contains("Refund") || 
+        i.Value.Contains("Business") || i.Value.Contains("Other Income"));
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-in">
+    <h2 class="mb-0">@ViewData["Title"]</h2>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="card animate-fade-in">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="bi bi-tag-fill me-2"></i> New Category Details
+        </h3>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" id="categoryForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <div class="form-group mb-4">
+                <label asp-for="Title" class="form-label">Category Name</label>
+                <input asp-for="Title" class="form-control" placeholder="Enter category name" id="categoryTitle" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group mb-4">
+                <label class="form-label d-block">Category Type</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check form-switch">
+                        <input type="radio" class="form-check-input type-toggle" name="Type" value="Expense" id="typeExpense" checked />
+                        <label class="form-check-label" for="typeExpense">Expense</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input type="radio" class="form-check-input type-toggle" name="Type" value="Income" id="typeIncome" />
+                        <label class="form-check-label" for="typeIncome">Income</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group mb-4">
+                <label class="form-label">Choose an Icon</label>
+                <input type="hidden" asp-for="Icon" id="selectedIcon" />
+                
+                <div class="icon-selector mb-3" id="iconContainer">
+                    <div class="d-flex flex-wrap" id="expenseIcons">
+                        @foreach (var icon in expenseIcons)
+                        {
+                            <div class="icon-option" data-icon="@icon.Key">
+                                <i class="@icon.Key"></i>
+                                <span class="icon-label">@icon.Value</span>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div class="d-flex flex-wrap d-none" id="incomeIcons">
+                        @foreach (var icon in incomeIcons)
+                        {
+                            <div class="icon-option" data-icon="@icon.Key">
+                                <i class="@icon.Key"></i>
+                                <span class="icon-label">@icon.Value</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                <div class="selected-icon-preview mb-3 d-none" id="iconPreview">
+                    <div class="preview-content">
+                        <i class="" id="previewIcon"></i>
+                        <span id="previewName"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Create Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeExpense = document.getElementById('typeExpense');
+            const typeIncome = document.getElementById('typeIncome');
+            const expenseIcons = document.getElementById('expenseIcons');
+            const incomeIcons = document.getElementById('incomeIcons');
+            const iconOptions = document.querySelectorAll('.icon-option');
+            const selectedIcon = document.getElementById('selectedIcon');
+            const iconPreview = document.getElementById('iconPreview');
+            const previewIcon = document.getElementById('previewIcon');
+            const previewName = document.getElementById('previewName');
+            
+            // Toggle between expense and income icons
+            typeExpense.addEventListener('change', function() {
+                if(this.checked) {
+                    expenseIcons.classList.remove('d-none');
+                    incomeIcons.classList.add('d-none');
+                }
+            });
+            
+            typeIncome.addEventListener('change', function() {
+                if(this.checked) {
+                    incomeIcons.classList.remove('d-none');
+                    expenseIcons.classList.add('d-none');
+                }
+            });
+            
+            // Handle icon selection
+            iconOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all options
+                    iconOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // Add active class to selected option
+                    this.classList.add('active');
+                    
+                    // Set the selected icon value
+                    const iconClass = this.getAttribute('data-icon');
+                    selectedIcon.value = iconClass;
+                    
+                    // Update preview
+                    previewIcon.className = iconClass;
+                    previewName.textContent = this.querySelector('.icon-label').textContent;
+                    iconPreview.classList.remove('d-none');
+                    
+                    // Set the category title to match selected icon
+                    const categoryTitle = document.getElementById('categoryTitle');
+                    categoryTitle.value = previewName.textContent;
+                });
+            });
+            
+            // Form validation
+            document.getElementById('categoryForm').addEventListener('submit', function(e) {
+                if (!selectedIcon.value) {
+                    e.preventDefault();
+                    alert('Please select an icon for the category');
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        .icon-selector {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .icon-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            margin: 0.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+        }
+        
+        .icon-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .icon-option.active {
+            background: rgba(110, 114, 252, 0.2);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(110, 114, 252, 0.3);
+        }
+        
+        .icon-option i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        
+        .icon-label {
+            font-size: 0.8rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .selected-icon-preview {
+            background: rgba(110, 114, 252, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(110, 114, 252, 0.3);
+        }
+        
+        .preview-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .preview-content i {
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .form-check-input {
+            cursor: pointer;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+    </style>
+}

@@ -1,0 +1,346 @@
+@model IEnumerable<Expense_Tracker.Models.Transaction>
+
+@{
+    ViewData["Title"] = "Transactions";
+    var totalIncome = Model.Where(t => t.Amount > 0).Sum(t => t.Amount);
+    var totalExpense = Model.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+    var balance = Model.Sum(t => t.Amount);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-in">
+    <h2 class="mb-0">@ViewData["Title"]</h2>
+    <div>
+        <a asp-action="AddOrEdit" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Transaction
+        </a>
+    </div>
+</div>
+
+<div class="filter-section animate-fade-in">
+    <form asp-action="Index" method="get" id="filterForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Date Range</label>
+                <div class="custom-date-range">
+                    <div class="date-range-pill" data-range="7">Last 7 days</div>
+                    <div class="date-range-pill" data-range="30">Last 30 days</div>
+                    <div class="date-range-pill" data-range="90">Last 3 months</div>
+                    <div class="date-range-pill active" data-range="custom">Custom</div>
+                </div>
+                <div class="date-inputs-container">
+                    <input type="date" name="startDate" id="startDate" value="@ViewBag.StartDate" class="form-control" />
+                    <input type="date" name="endDate" id="endDate" value="@ViewBag.EndDate" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Transaction Type</label>
+                <select name="type" id="transactionType" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Display Currency</label>
+                <select name="displayCurrency" id="displayCurrency" class="form-select">
+                    <option value="EUR">EUR (€)</option>
+                    <option value="BGN">BGN (лв)</option>
+                    <option value="USD">USD ($)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label d-block">&nbsp;</label>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-filter"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="stats-card income">
+            <div class="stats-icon income">
+                <i class="bi bi-arrow-up-circle"></i>
+            </div>
+            <h5>Total Income</h5>
+            <h2 id="income-amount" data-value="@totalIncome">@totalIncome.ToString("C")</h2>
+            <p class="text-muted">
+                <i class="bi bi-calendar3"></i> 
+                <span id="date-range-text">Selected period</span>
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="stats-card expense">
+            <div class="stats-icon expense">
+                <i class="bi bi-arrow-down-circle"></i>
+            </div>
+            <h5>Total Expenses</h5>
+            <h2 id="expense-amount" data-value="@totalExpense">@totalExpense.ToString("C")</h2>
+            <p class="text-muted">
+                <i class="bi bi-graph-down"></i> 
+                <span id="expense-percent">0%</span> from income
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="stats-card balance">
+            <div class="stats-icon balance">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <h5>Net Balance</h5>
+            <h2 id="balance-amount" class="@(balance >= 0 ? "text-success" : "text-danger")" 
+               data-value="@balance">@balance.ToString("C")</h2>
+            <p class="text-muted">
+                <i class="bi bi-calendar-check"></i> Updated just now
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card animate-fade-in" style="animation-delay: 0.4s;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">
+            <i class="bi bi-list-ul"></i> Transaction History
+        </h3>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" 
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-sort-down"></i> Sort
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item sort-option" data-sort="date-desc">Date (Newest First)</a></li>
+                <li><a class="dropdown-item sort-option" data-sort="date-asc">Date (Oldest First)</a></li>
+                <li><a class="dropdown-item sort-option" data-sort="amount-desc">Amount (Highest First)</a></li>
+                <li><a class="dropdown-item sort-option" data-sort="amount-asc">Amount (Lowest First)</a></li>
+                <li><a class="dropdown-item sort-option" data-sort="category">Category</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover" id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Note</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderByDescending(x => x.Date))
+                    {
+                        <tr class="transaction-item" 
+                            data-amount="@item.Amount" 
+                            data-date="@item.Date.ToString("yyyy-MM-dd")" 
+                            data-category="@item.Category.Title">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @item.Category.Title
+                                </div>
+                            </td>
+                            <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                            <td>@item.Note</td>
+                            <td class="text-end">
+                                <span class="@(item.Amount > 0 ? "text-success" : "text-danger") fw-bold">
+                                    @(item.Amount > 0 ? "+" : "")@item.Amount.ToString("C") 
+                                    <span class="currency-badge">@item.Currency</span>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a asp-action="AddOrEdit" asp-route-id="@item.TransactionId" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.TransactionId" class="delete-form">
+                                        <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="@item.TransactionId">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this transaction? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate transaction items
+            const items = document.querySelectorAll('.transaction-item');
+            items.forEach((item, index) => {
+                item.style.animation = `fadeIn 0.3s ease forwards ${index * 0.05}s`;
+            });
+            
+            // Initialize date range pills
+            const dateRangePills = document.querySelectorAll('.date-range-pill');
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            
+            dateRangePills.forEach(pill => {
+                pill.addEventListener('click', function() {
+                    // Remove active class from all pills
+                    dateRangePills.forEach(p => p.classList.remove('active'));
+                    // Add active class to clicked pill
+                    this.classList.add('active');
+                    
+                    const range = this.getAttribute('data-range');
+                    const today = new Date();
+                    let startDate = new Date();
+                    
+                    if (range === 'custom') {
+                        return; // Don't change dates for custom
+                    }
+                    
+                    // Calculate start date based on range
+                    if (range === '7') {
+                        startDate.setDate(today.getDate() - 7);
+                    } else if (range === '30') {
+                        startDate.setDate(today.getDate() - 30);
+                    } else if (range === '90') {
+                        startDate.setDate(today.getDate() - 90);
+                    }
+                    
+                    // Format dates for input
+                    startDateInput.value = formatDate(startDate);
+                    endDateInput.value = formatDate(today);
+                    
+                    // Update date range text
+                    updateDateRangeText(range);
+                    
+                    // Submit form
+                    document.getElementById('filterForm').submit();
+                });
+            });
+            
+            // Function to format date as YYYY-MM-DD
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            // Update expense percentage
+            const totalIncome = parseFloat(document.getElementById('income-amount').getAttribute('data-value'));
+            const totalExpense = parseFloat(document.getElementById('expense-amount').getAttribute('data-value'));
+            
+            if (totalIncome > 0) {
+                const percentage = Math.round((totalExpense / totalIncome) * 100);
+                document.getElementById('expense-percent').textContent = `${percentage}%`;
+            }
+            
+            // Handle sorting
+            const sortOptions = document.querySelectorAll('.sort-option');
+            sortOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const sortBy = this.getAttribute('data-sort');
+                    sortTransactions(sortBy);
+                });
+            });
+            
+            function sortTransactions(sortBy) {
+                const table = document.getElementById('transactionsTable');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                
+                rows.sort((a, b) => {
+                    if (sortBy === 'date-desc') {
+                        return new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date'));
+                    } else if (sortBy === 'date-asc') {
+                        return new Date(a.getAttribute('data-date')) - new Date(b.getAttribute('data-date'));
+                    } else if (sortBy === 'amount-desc') {
+                        return parseFloat(b.getAttribute('data-amount')) - parseFloat(a.getAttribute('data-amount'));
+                    } else if (sortBy === 'amount-asc') {
+                        return parseFloat(a.getAttribute('data-amount')) - parseFloat(b.getAttribute('data-amount'));
+                    } else if (sortBy === 'category') {
+                        return a.getAttribute('data-category').localeCompare(b.getAttribute('data-category'));
+                    }
+                });
+                
+                // Clear tbody
+                while (tbody.firstChild) {
+                    tbody.removeChild(tbody.firstChild);
+                }
+                
+                // Append sorted rows
+                rows.forEach(row => {
+                    tbody.appendChild(row);
+                });
+                
+                // Re-animate sorted rows
+                const items = document.querySelectorAll('.transaction-item');
+                items.forEach((item, index) => {
+                    item.style.animation = 'none';
+                    item.offsetHeight; // Trigger reflow
+                    item.style.animation = `fadeIn 0.3s ease forwards ${index * 0.05}s`;
+                });
+            }
+            
+            // Update date range text based on current dates
+            function updateDateRangeText(range) {
+                const dateRangeText = document.getElementById('date-range-text');
+                if (range === '7') {
+                    dateRangeText.textContent = 'Last 7 days';
+                } else if (range === '30') {
+                    dateRangeText.textContent = 'Last 30 days';
+                } else if (range === '90') {
+                    dateRangeText.textContent = 'Last 3 months';
+                } else {
+                    const start = new Date(startDateInput.value);
+                    const end = new Date(endDateInput.value);
+                    dateRangeText.textContent = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+                }
+            }
+            
+            // Initialize date range text
+            updateDateRangeText('custom');
+            
+            // Handle delete confirmation
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            let currentTransactionId = null;
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    currentTransactionId = this.getAttribute('data-id');
+                    deleteModal.show();
+                });
+            });
+            
+            document.getElementById('confirmDelete').addEventListener('click', function() {
+                if (currentTransactionId) {
+                    const form = document.querySelector(`.delete-form button[data-id="${currentTransactionId}"]`).closest('form');
+                    form.submit();
+                }
+            });
+        });
+    </script>
+} 

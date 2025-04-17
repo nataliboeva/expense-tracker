@@ -1,0 +1,329 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-in">
+    <h2 class="mb-0">@ViewData["Title"]</h2>
+</div>
+
+<!-- Date Range Filter -->
+<div class="filter-section animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex gap-3 flex-wrap">
+            <div class="form-group mb-0">
+                <label class="form-label">Start Date</label>
+                <input type="date" id="startDate" class="form-control" />
+            </div>
+            <div class="form-group mb-0">
+                <label class="form-label">End Date</label>
+                <input type="date" id="endDate" class="form-control" />
+            </div>
+            <div class="form-group mb-0 d-flex align-items-end">
+                <button class="btn btn-primary" onclick="updateDashboard()">
+                    <i class="bi bi-filter"></i> Apply Filter
+                </button>
+            </div>
+        </div>
+        <div class="btn-group mt-3 mt-md-0">
+            <button class="btn btn-outline-light" onclick="setDateRange(7)">Last 7 Days</button>
+            <button class="btn btn-outline-light" onclick="setDateRange(30)">Last 30 Days</button>
+            <button class="btn btn-outline-light" onclick="setDateRange(90)">Last 90 Days</button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Total Income Card -->
+    <div class="col-md-4 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+        <div class="stats-card income">
+            <div class="stats-icon income">
+                <i class="bi bi-arrow-up-circle"></i>
+            </div>
+            <h5>Total Income</h5>
+            <h2 id="income-amount" data-value="@ViewBag.TotalIncome.Replace("$", "").Replace(",", "")">@ViewBag.TotalIncome</h2>
+            <p class="text-muted">
+                <i class="bi bi-calendar3"></i> 
+                <span id="date-range-text">Selected period</span>
+            </p>
+        </div>
+    </div>
+    <!-- Total Expense Card -->
+    <div class="col-md-4 mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+        <div class="stats-card expense">
+            <div class="stats-icon expense">
+                <i class="bi bi-arrow-down-circle"></i>
+            </div>
+            <h5>Total Expenses</h5>
+            <h2 id="expense-amount" data-value="@ViewBag.TotalExpense.Replace("$", "").Replace(",", "")">@ViewBag.TotalExpense</h2>
+            <p class="text-muted">
+                <i class="bi bi-graph-down"></i> 
+                <span id="expense-percent">Compared to income</span>
+            </p>
+        </div>
+    </div>
+    <!-- Balance Card -->
+    <div class="col-md-4 mb-4 animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="stats-card balance">
+            <div class="stats-icon balance">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <h5>Net Balance</h5>
+            <h2 id="balance-amount">@ViewBag.Balance</h2>
+            <p class="text-muted">
+                <i class="bi bi-calendar-check"></i> Updated just now
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Expense By Category -->
+    <div class="col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.4s;">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-pie-chart-fill me-2"></i> Expense By Category
+                </h3>
+            </div>
+            <div class="card-body">
+                <div id="doughnutChart" style="width:100%; height:300px;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Income vs Expense -->
+    <div class="col-md-6 mb-4 animate-fade-in" style="animation-delay: 0.5s;">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-graph-up me-2"></i> Income vs Expense
+                </h3>
+            </div>
+            <div class="card-body">
+                <div id="splineChart" style="width:100%; height:300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card animate-fade-in" style="animation-delay: 0.6s;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">
+            <i class="bi bi-clock-history me-2"></i> Recent Transactions
+        </h3>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in ViewBag.RecentTransactions)
+                    {
+                        <tr class="transaction-item">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="category-label">@transaction.Category.Title</span>
+                                </div>
+                            </td>
+                            <td>@transaction.Date.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <span class="@(transaction.Category.Type == "Expense" ? "text-danger" : "text-success") fw-bold">
+                                    @((transaction.Category.Type == "Expense" ? "- " : "+ ") + transaction.Amount.ToString("C"))
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        // Initialize date range
+        let startDate = document.getElementById('startDate');
+        let endDate = document.getElementById('endDate');
+        
+        // Set default date range (last 7 days)
+        startDate.value = "@ViewBag.StartDate" || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        endDate.value = "@ViewBag.EndDate" || new Date().toISOString().split('T')[0];
+
+        function setDateRange(days) {
+            startDate.value = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            endDate.value = new Date().toISOString().split('T')[0];
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            window.location.href = `/Dashboard/Index?startDate=${startDate.value}&endDate=${endDate.value}`;
+        }
+
+        // Doughnut Chart
+        var doughnutChartData = @Html.Raw(Json.Serialize(ViewBag.DoughnutChartData));
+        var options = {
+            series: doughnutChartData.map(item => item.amount),
+            chart: {
+                type: 'donut',
+                height: 300,
+                fontFamily: 'Inter, sans-serif',
+                foreColor: '#fff',
+                background: 'transparent'
+            },
+            labels: doughnutChartData.map(item => item.categoryTitleWithIcon),
+            colors: ['#00d2f1', '#6e72fc', '#ad1deb', '#05d27a', '#ff4757', '#ffb017', '#ff49db', '#06b6d4'],
+            legend: {
+                position: 'bottom',
+                labels: {
+                    colors: '#fff'
+                },
+                fontSize: '14px',
+                fontWeight: 500
+            },
+            dataLabels: {
+                enabled: false
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                color: '#fff',
+                                fontWeight: 600,
+                                fontSize: '16px'
+                            }
+                        }
+                    }
+                }
+            },
+            tooltip: {
+                theme: 'dark',
+                y: {
+                    formatter: function (value) {
+                        return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                    }
+                }
+            }
+        };
+        var chart = new ApexCharts(document.querySelector("#doughnutChart"), options);
+        chart.render();
+
+        // Spline Chart
+        var splineChartData = @Html.Raw(Json.Serialize(ViewBag.SplineChartData));
+        var splineOptions = {
+            series: [{
+                name: 'Income',
+                data: splineChartData.map(item => item.income),
+                color: '#05d27a'
+            }, {
+                name: 'Expense',
+                data: splineChartData.map(item => item.expense),
+                color: '#ff4757'
+            }],
+            chart: {
+                height: 300,
+                type: 'area',
+                toolbar: {
+                    show: false
+                },
+                fontFamily: 'Inter, sans-serif',
+                foreColor: '#fff',
+                background: 'transparent'
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 3
+            },
+            xaxis: {
+                categories: splineChartData.map(item => item.day),
+                labels: {
+                    style: {
+                        colors: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 500
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 500
+                    },
+                    formatter: function (value) {
+                        return value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+                    }
+                }
+            },
+            tooltip: {
+                theme: 'dark',
+                y: {
+                    formatter: function (value) {
+                        return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                    }
+                }
+            },
+            grid: {
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                strokeDashArray: 4,
+                yaxis: {
+                    lines: {
+                        show: true
+                    }
+                }
+            },
+            legend: {
+                labels: {
+                    colors: '#fff'
+                },
+                fontSize: '14px',
+                fontWeight: 500
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.3,
+                }
+            }
+        };
+        var splineChart = new ApexCharts(document.querySelector("#splineChart"), splineOptions);
+        splineChart.render();
+        
+        // Animate transaction items
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.transaction-item');
+            items.forEach((item, index) => {
+                item.style.animation = `fadeIn 0.3s ease forwards ${index * 0.05}s`;
+                item.style.opacity = 0;
+            });
+            
+            // Update expense percentage
+            const totalIncome = parseFloat(document.getElementById('income-amount').getAttribute('data-value') || "0");
+            const totalExpense = parseFloat(document.getElementById('expense-amount').getAttribute('data-value') || "0");
+            
+            if (totalIncome > 0) {
+                const percentage = Math.round((totalExpense / totalIncome) * 100);
+                document.getElementById('expense-percent').textContent = `${percentage}% of income`;
+            }
+            
+            // Set date range text
+            document.getElementById('date-range-text').textContent = 
+                `${new Date(startDate.value).toLocaleDateString()} - ${new Date(endDate.value).toLocaleDateString()}`;
+        });
+    </script>
+} 

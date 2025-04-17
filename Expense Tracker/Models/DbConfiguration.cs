@@ -3,6 +3,6 @@
     public static class DbConfiguration
     {
         public const string ConnectionString =
-            @"Server=.;Database=TransactionDB;Trusted_Connection=True;Encrypt=False;";
+            @"Server=(localdb)\MSSQLLocalDB;Database=TransactionDB;Trusted_Connection=True;MultipleActiveResultSets=True";
     }
 }
