@@ -2,65 +2,13 @@
 
 @{
     ViewData["Title"] = "Edit Category";
-    
-    // Dictionary of Bootstrap icons for categories
-    var categoryIcons = new Dictionary<string, string>
-    {
-        // Expense Categories
-        {"bi bi-cart-fill", "Groceries"},
-        {"bi bi-shop", "Shopping"},
-        {"bi bi-car-front-fill", "Transportation"},
-        {"bi bi-airplane-fill", "Travel"},
-        {"bi bi-cup-hot-fill", "Food & Dining"},
-        {"bi bi-film", "Entertainment"},
-        {"bi bi-heart-pulse-fill", "Healthcare"},
-        {"bi bi-book-fill", "Education"},
-        {"bi bi-receipt", "Bills"},
-        {"bi bi-house-fill", "Housing"},
-        {"bi bi-lightbulb-fill", "Utilities"},
-        {"bi bi-scissors", "Personal Care"},
-        {"bi bi-bicycle", "Fitness"},
-        {"bi bi-gift-fill", "Gifts"},
-        {"bi bi-palette-fill", "Hobbies"},
-        {"bi bi-pc-display", "Technology"},
-        {"bi bi-bag-fill", "Clothing"},
-        {"bi bi-building", "Rent"},
-        {"bi bi-coin", "Taxes"},
-        {"bi bi-piggy-bank-fill", "Savings"},
-        {"bi bi-cash-coin", "Other Expense"},
-        
-        // Income Categories
-        {"bi bi-currency-dollar", "Salary"},
-        {"bi bi-laptop-fill", "Freelance"},
-        {"bi bi-graph-up-arrow", "Investments"},
-        {"bi bi-trophy-fill", "Bonus"},
-        {"bi bi-bank", "Interest"},
-        {"bi bi-wallet-fill", "Refund"},
-        {"bi bi-building-fill", "Rental Income"},
-        {"bi bi-briefcase-fill", "Business"},
-        {"bi bi-cash-stack", "Other Income"}
-    };
-    
-    var expenseIcons = categoryIcons.Where(i => !i.Value.Contains("Income") && !i.Value.StartsWith("Salary") && 
-        !i.Value.Contains("Freelance") && !i.Value.Contains("Investments") && 
-        !i.Value.Contains("Bonus") && !i.Value.Contains("Interest") && 
-        !i.Value.Contains("Rental Income") && !i.Value.Contains("Refund") && 
-        !i.Value.Contains("Business") && !i.Value.Contains("Other Income"));
-        
-    var incomeIcons = categoryIcons.Where(i => i.Value.Contains("Income") || i.Value.StartsWith("Salary") || 
-        i.Value.Contains("Freelance") || i.Value.Contains("Investments") || 
-        i.Value.Contains("Bonus") || i.Value.Contains("Interest") || 
-        i.Value.Contains("Rental Income") || i.Value.Contains("Refund") || 
-        i.Value.Contains("Business") || i.Value.Contains("Other Income"));
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-in">
-    <h2 class="mb-0">@ViewData["Title"]</h2>
-    <div>
-        <a asp-action="Index" class="btn btn-outline-light">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Edit Category</h2>
+    <a href="@Url.Action("Index")" class="btn btn-outline-light">
+        <i class="bi bi-arrow-left"></i> Back to List
+    </a>
 </div>
 
 <div class="card animate-fade-in">
@@ -73,13 +21,13 @@
         <form asp-action="Edit" id="categoryForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="CategoryId" />
-            
+
             <div class="form-group mb-4">
                 <label asp-for="Title" class="form-label">Category Name</label>
                 <input asp-for="Title" class="form-control" placeholder="Enter category name" id="categoryTitle" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
-            
+
             <div class="form-group mb-4">
                 <label class="form-label d-block">Category Type</label>
                 <div class="d-flex gap-3">
@@ -93,41 +41,83 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="form-group mb-4">
                 <label class="form-label">Choose an Icon</label>
                 <input type="hidden" asp-for="Icon" id="selectedIcon" />
                 
                 <div class="icon-selector mb-3" id="iconContainer">
                     <div class="d-flex flex-wrap" id="expenseIcons">
-                        @foreach (var icon in expenseIcons)
-                        {
-                            <div class="icon-option @(Model.Icon == icon.Key ? "active" : "")" data-icon="@icon.Key">
-                                <i class="@icon.Key"></i>
-                                <span class="icon-label">@icon.Value</span>
-                            </div>
-                        }
+                        <div class="icon-option" data-icon="bi-cart">
+                            <i class="bi bi-cart"></i>
+                            <span class="icon-label">Shopping</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-house">
+                            <i class="bi bi-house"></i>
+                            <span class="icon-label">Housing</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-cup-hot">
+                            <i class="bi bi-cup-hot"></i>
+                            <span class="icon-label">Food</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-car-front">
+                            <i class="bi bi-car-front"></i>
+                            <span class="icon-label">Transport</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-heart">
+                            <i class="bi bi-heart"></i>
+                            <span class="icon-label">Health</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-book">
+                            <i class="bi bi-book"></i>
+                            <span class="icon-label">Education</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-receipt">
+                            <i class="bi bi-receipt"></i>
+                            <span class="icon-label">Bills</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-bag">
+                            <i class="bi bi-bag"></i>
+                            <span class="icon-label">Shopping</span>
+                        </div>
                     </div>
                     
-                    <div class="d-flex flex-wrap @(Model.Type == "Income" ? "" : "d-none")" id="incomeIcons">
-                        @foreach (var icon in incomeIcons)
-                        {
-                            <div class="icon-option @(Model.Icon == icon.Key ? "active" : "")" data-icon="@icon.Key">
-                                <i class="@icon.Key"></i>
-                                <span class="icon-label">@icon.Value</span>
-                            </div>
-                        }
+                    <div class="d-flex flex-wrap d-none" id="incomeIcons">
+                        <div class="icon-option" data-icon="bi-wallet">
+                            <i class="bi bi-wallet"></i>
+                            <span class="icon-label">Salary</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-laptop">
+                            <i class="bi bi-laptop"></i>
+                            <span class="icon-label">Freelance</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-graph-up">
+                            <i class="bi bi-graph-up"></i>
+                            <span class="icon-label">Investment</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-trophy">
+                            <i class="bi bi-trophy"></i>
+                            <span class="icon-label">Bonus</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-building">
+                            <i class="bi bi-building"></i>
+                            <span class="icon-label">Rent</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-cash">
+                            <i class="bi bi-cash"></i>
+                            <span class="icon-label">Other</span>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="selected-icon-preview mb-3 @(string.IsNullOrEmpty(Model.Icon) ? "d-none" : "")" id="iconPreview">
+
+                <div class="selected-icon-preview mb-3 d-none" id="iconPreview">
                     <div class="preview-content">
-                        <i class="@Model.Icon" id="previewIcon"></i>
-                        <span id="previewName">@(categoryIcons.ContainsKey(Model.Icon) ? categoryIcons[Model.Icon] : "Selected Icon")</span>
+                        <i class="" id="previewIcon"></i>
+                        <span id="previewName">Selected Icon</span>
                     </div>
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle"></i> Update Category
@@ -139,7 +129,7 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const typeExpense = document.getElementById('typeExpense');
@@ -166,7 +156,7 @@
                     expenseIcons.classList.add('d-none');
                 }
             });
-            
+
             // Handle icon selection
             iconOptions.forEach(option => {
                 option.addEventListener('click', function() {
@@ -200,17 +190,14 @@
             });
         });
     </script>
-    
+
     <style>
         .icon-selector {
             max-height: 300px;
             overflow-y: auto;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border: 1px solid var(--border-color);
         }
-        
+
         .icon-option {
             display: flex;
             flex-direction: column;
@@ -226,30 +213,30 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
         }
-        
+
         .icon-option:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
         }
-        
+
         .icon-option.active {
             background: rgba(110, 114, 252, 0.2);
             border-color: var(--accent-primary);
             box-shadow: 0 0 0 2px rgba(110, 114, 252, 0.3);
         }
-        
+
         .icon-option i {
             font-size: 2rem;
             margin-bottom: 0.5rem;
             color: white;
         }
-        
+
         .icon-label {
             font-size: 0.8rem;
             text-align: center;
             color: var(--text-secondary);
         }
-        
+
         .selected-icon-preview {
             background: rgba(110, 114, 252, 0.1);
             border-radius: 10px;
@@ -258,7 +245,7 @@
             align-items: center;
             border: 1px solid rgba(110, 114, 252, 0.3);
         }
-        
+
         .preview-content {
             display: flex;
             align-items: center;

@@ -1,6 +1,7 @@
 using Expense_Tracker.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Expense_Tracker
 {
@@ -24,6 +25,9 @@ namespace Expense_Tracker
                     options.LoginPath = "/Account/Login";
                     options.LogoutPath = "/Account/Logout";
                 });
+
+            // Add Logging
+            builder.Services.AddLogging();
 
             var app = builder.Build();
 

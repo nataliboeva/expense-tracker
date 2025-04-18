@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Expense_Tracker.Models;
 using Expense_Tracker.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Expense_Tracker.Controllers
 {
@@ -16,10 +19,12 @@ namespace Expense_Tracker.Controllers
     {
         private readonly ApplicationDbContext _context;
         private const string DefaultCurrency = "EUR";
+        private readonly ILogger<TransactionController> _logger;
 
-        public TransactionController(ApplicationDbContext context)
+        public TransactionController(ApplicationDbContext context, ILogger<TransactionController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: Transaction
@@ -71,8 +76,7 @@ namespace Expense_Tracker.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Log error but don't break the page
-                                Console.WriteLine($"Currency conversion error: {ex.Message}");
+                                _logger.LogError(ex, "Currency conversion error");
                             }
                         }
                     }
@@ -82,20 +86,62 @@ namespace Expense_Tracker.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception and return a friendly error view
-                ViewBag.ErrorMessage = ex.Message;
-                return View("Error");
+                _logger.LogError(ex, "Error in Index");
+                return View("Error", new ErrorViewModel 
+                { 
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                    Message = "An error occurred while loading transactions: " + ex.Message
+                });
             }
         }
 
         // GET: Transaction/AddOrEdit
         public IActionResult AddOrEdit(int id = 0)
         {
-            PopulateCategories();
-            if (id == 0)
-                return View(new Transaction { Currency = DefaultCurrency });
-            else
-                return View(_context.Transactions.Find(id));
+            try
+            {
+                // Get categories and convert to IEnumerable
+                var categories = _context.Categories
+                    .Where(c => c.CategoryId > 0)  // Exclude any default category
+                    .OrderBy(c => c.Type)
+                    .ThenBy(c => c.Title)
+                    .AsEnumerable();  // Convert to IEnumerable to enable LINQ methods in view
+
+                ViewBag.Categories = categories;
+
+                if (id == 0)
+                {
+                    return View(new Transaction
+                    {
+                        Currency = DefaultCurrency,
+                        Date = DateTime.Now
+                    });
+                }
+                else
+                {
+                    var transaction = _context.Transactions
+                        .AsNoTracking()
+                        .Include(t => t.Category)
+                        .FirstOrDefault(t => t.TransactionId == id);
+
+                    if (transaction == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return View(transaction);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddOrEdit GET");
+                ModelState.AddModelError("", "An error occurred while loading the transaction form.");
+                return View("Error", new ErrorViewModel 
+                { 
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                    Message = "An error occurred while loading the transaction form: " + ex.Message
+                });
+            }
         }
 
         // POST: Transaction/AddOrEdit
@@ -103,44 +149,98 @@ namespace Expense_Tracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddOrEdit([Bind("TransactionId,CategoryId,Amount,Note,Date,Currency")] Transaction transaction)
         {
-            // Normalize DOLLAR to USD
-            if (transaction.Currency == "DOLLAR")
+            try
             {
-                transaction.Currency = "USD";
-            }
+                // Ensure proper decimal culture handling
+                System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
-            if (ModelState.IsValid)
-            {
-                try
+                // Validate CategoryId
+                if (transaction.CategoryId <= 0)
+                {
+                    ModelState.AddModelError("CategoryId", "Please select a valid category.");
+                }
+
+                // Validate Amount
+                if (transaction.Amount <= 0)
+                {
+                    ModelState.AddModelError("Amount", "Amount must be greater than 0.");
+                }
+
+                // Validate Currency
+                if (string.IsNullOrEmpty(transaction.Currency))
+                {
+                    transaction.Currency = DefaultCurrency;
+                }
+
+                // Set date if not provided
+                if (transaction.Date == default)
+                {
+                    transaction.Date = DateTime.Now;
+                }
+
+                if (ModelState.IsValid)
                 {
                     if (transaction.TransactionId == 0)
+                    {
                         _context.Add(transaction);
+                    }
                     else
                     {
-                        var existingTransaction = await _context.Transactions.FindAsync(transaction.TransactionId);
+                        var existingTransaction = await _context.Transactions
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId);
+
+                        if (existingTransaction == null)
+                        {
+                            return NotFound();
+                        }
+
+                        // Preserve the original date if not explicitly changed
+                        if (transaction.Date == default)
+                        {
+                            transaction.Date = existingTransaction.Date;
+                        }
+
+                        // Only convert currency if it has changed
                         if (existingTransaction.Currency != transaction.Currency)
                         {
-                            // Convert amount from old currency to new currency
                             transaction.Amount = CurrencyConverter.Convert(
                                 transaction.Amount,
                                 existingTransaction.Currency,
                                 transaction.Currency);
                         }
+
                         _context.Update(transaction);
                     }
+
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
-                {
-                    // Log the exception
-                    Console.WriteLine($"Error in AddOrEdit: {ex.Message}");
-                    ModelState.AddModelError("", "An error occurred while saving the transaction. Please try again.");
-                }
-            }
 
-            PopulateCategories();
-            return View(transaction);
+                // If we got this far, something failed, redisplay form
+                var categories = _context.Categories
+                    .Where(c => c.CategoryId > 0)
+                    .OrderBy(c => c.Type)
+                    .ThenBy(c => c.Title)
+                    .AsEnumerable();
+
+                ViewBag.Categories = categories;
+                return View(transaction);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddOrEdit POST");
+                ModelState.AddModelError("", "An error occurred while saving the transaction. Please try again.");
+                
+                var categories = _context.Categories
+                    .Where(c => c.CategoryId > 0)
+                    .OrderBy(c => c.Type)
+                    .ThenBy(c => c.Title)
+                    .AsEnumerable();
+
+                ViewBag.Categories = categories;
+                return View(transaction);
+            }
         }
 
         // POST: Transaction/Delete/5
@@ -165,20 +265,13 @@ namespace Expense_Tracker.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error in Delete: {ex.Message}");
-                ViewBag.ErrorMessage = "An error occurred while deleting the transaction.";
-                return View("Error");
+                _logger.LogError(ex, "Error in Delete");
+                return View("Error", new ErrorViewModel 
+                { 
+                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                    Message = "An error occurred while deleting the transaction: " + ex.Message
+                });
             }
-        }
-
-        [NonAction]
-        public void PopulateCategories()
-        {
-            var CategoryCollection = _context.Categories.ToList();
-            Category DefaultCategory = new Category() { CategoryId = 0, Title = "Choose a Category" };
-            CategoryCollection.Insert(0, DefaultCategory);
-            ViewBag.Categories = CategoryCollection;
         }
     }
 } 

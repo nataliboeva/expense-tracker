@@ -11,25 +11,19 @@
     </a>
 </div>
 
-<div class="glass-card">
+<div class="card animate-fade-in">
     <div class="card-header">
-        <div class="d-flex align-items-center">
-            <i class="bi bi-tag me-2"></i>
-            <h3 class="mb-0">New Category Details</h3>
-        </div>
+        <h3 class="card-title">
+            <i class="bi bi-tag-fill me-2"></i> New Category Details
+        </h3>
     </div>
     <div class="card-body">
-        <form asp-action="Create">
+        <form asp-action="Create" id="categoryForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group mb-4">
-                <label class="form-label">Category Name</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent">
-                        <i class="bi bi-pencil"></i>
-                    </span>
-                    <input asp-for="Title" class="form-control bg-transparent" placeholder="Enter category name" />
-                </div>
+                <label asp-for="Title" class="form-label">Category Name</label>
+                <input asp-for="Title" class="form-control" placeholder="Enter category name" id="categoryTitle" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
 
@@ -51,74 +45,83 @@
             </div>
 
             <div class="form-group mb-4">
-                <label class="form-label">Choose Icon</label>
+                <label class="form-label">Choose an Icon</label>
                 <input type="hidden" asp-for="Icon" id="selectedIcon" />
                 
-                <div class="icons-grid" id="expenseIcons">
-                    <div class="icon-item" data-icon="bi-cart">
-                        <i class="bi bi-cart"></i>
-                        <span>Shopping</span>
+                <div class="icon-selector mb-3" id="iconContainer">
+                    <div class="d-flex flex-wrap" id="expenseIcons">
+                        <div class="icon-option" data-icon="bi-cart">
+                            <i class="bi bi-cart"></i>
+                            <span class="icon-label">Shopping</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-house">
+                            <i class="bi bi-house"></i>
+                            <span class="icon-label">Housing</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-cup-hot">
+                            <i class="bi bi-cup-hot"></i>
+                            <span class="icon-label">Food</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-car-front">
+                            <i class="bi bi-car-front"></i>
+                            <span class="icon-label">Transport</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-heart">
+                            <i class="bi bi-heart"></i>
+                            <span class="icon-label">Health</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-book">
+                            <i class="bi bi-book"></i>
+                            <span class="icon-label">Education</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-receipt">
+                            <i class="bi bi-receipt"></i>
+                            <span class="icon-label">Bills</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-bag">
+                            <i class="bi bi-bag"></i>
+                            <span class="icon-label">Shopping</span>
+                        </div>
                     </div>
-                    <div class="icon-item" data-icon="bi-house">
-                        <i class="bi bi-house"></i>
-                        <span>Housing</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-cup-hot">
-                        <i class="bi bi-cup-hot"></i>
-                        <span>Food</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-car-front">
-                        <i class="bi bi-car-front"></i>
-                        <span>Transport</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-heart">
-                        <i class="bi bi-heart"></i>
-                        <span>Health</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-book">
-                        <i class="bi bi-book"></i>
-                        <span>Education</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-receipt">
-                        <i class="bi bi-receipt"></i>
-                        <span>Bills</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-bag">
-                        <i class="bi bi-bag"></i>
-                        <span>Shopping</span>
+                    
+                    <div class="d-flex flex-wrap d-none" id="incomeIcons">
+                        <div class="icon-option" data-icon="bi-wallet">
+                            <i class="bi bi-wallet"></i>
+                            <span class="icon-label">Salary</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-laptop">
+                            <i class="bi bi-laptop"></i>
+                            <span class="icon-label">Freelance</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-graph-up">
+                            <i class="bi bi-graph-up"></i>
+                            <span class="icon-label">Investment</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-trophy">
+                            <i class="bi bi-trophy"></i>
+                            <span class="icon-label">Bonus</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-building">
+                            <i class="bi bi-building"></i>
+                            <span class="icon-label">Rent</span>
+                        </div>
+                        <div class="icon-option" data-icon="bi-cash">
+                            <i class="bi bi-cash"></i>
+                            <span class="icon-label">Other</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="icons-grid d-none" id="incomeIcons">
-                    <div class="icon-item" data-icon="bi-wallet">
-                        <i class="bi bi-wallet"></i>
-                        <span>Salary</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-laptop">
-                        <i class="bi bi-laptop"></i>
-                        <span>Freelance</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-graph-up">
-                        <i class="bi bi-graph-up"></i>
-                        <span>Investment</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-trophy">
-                        <i class="bi bi-trophy"></i>
-                        <span>Bonus</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-building">
-                        <i class="bi bi-building"></i>
-                        <span>Rent</span>
-                    </div>
-                    <div class="icon-item" data-icon="bi-cash">
-                        <i class="bi bi-cash"></i>
-                        <span>Other</span>
+                <div class="selected-icon-preview mb-3 d-none" id="iconPreview">
+                    <div class="preview-content">
+                        <i class="" id="previewIcon"></i>
+                        <span id="previewName">Selected Icon</span>
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <button type="submit" class="btn btn-primary w-100">
+                <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle"></i> Create Category
                 </button>
             </div>
@@ -129,22 +132,140 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeExpense = document.getElementById('expense');
+            const typeIncome = document.getElementById('income');
+            const expenseIcons = document.getElementById('expenseIcons');
+            const incomeIcons = document.getElementById('incomeIcons');
+            const iconOptions = document.querySelectorAll('.icon-option');
+            const selectedIcon = document.getElementById('selectedIcon');
+            const iconPreview = document.getElementById('iconPreview');
+            const previewIcon = document.getElementById('previewIcon');
+            const previewName = document.getElementById('previewName');
+            
+            // Toggle between expense and income icons
+            typeExpense.addEventListener('change', function() {
+                if(this.checked) {
+                    expenseIcons.classList.remove('d-none');
+                    incomeIcons.classList.add('d-none');
+                }
+            });
+            
+            typeIncome.addEventListener('change', function() {
+                if(this.checked) {
+                    incomeIcons.classList.remove('d-none');
+                    expenseIcons.classList.add('d-none');
+                }
+            });
+
+            // Handle icon selection
+            iconOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all options
+                    iconOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // Add active class to selected option
+                    this.classList.add('active');
+                    
+                    // Set the selected icon value
+                    const iconClass = this.getAttribute('data-icon');
+                    selectedIcon.value = iconClass;
+                    
+                    // Update preview
+                    previewIcon.className = iconClass;
+                    previewName.textContent = this.querySelector('.icon-label').textContent;
+                    iconPreview.classList.remove('d-none');
+                    
+                    // Set the category title to match selected icon
+                    const categoryTitle = document.getElementById('categoryTitle');
+                    categoryTitle.value = previewName.textContent;
+                });
+            });
+            
+            // Form validation
+            document.getElementById('categoryForm').addEventListener('submit', function(e) {
+                if (!selectedIcon.value) {
+                    e.preventDefault();
+                    alert('Please select an icon for the category');
+                }
+            });
+        });
+    </script>
+
     <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .icon-selector {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 10px;
         }
 
-        .card-header {
+        .icon-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            margin: 0.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
             background: rgba(255, 255, 255, 0.05);
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
         }
 
-        .card-body {
-            padding: 1.5rem;
+        .icon-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .icon-option.active {
+            background: rgba(110, 114, 252, 0.2);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(110, 114, 252, 0.3);
+        }
+
+        .icon-option i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .icon-label {
+            font-size: 0.8rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .selected-icon-preview {
+            background: rgba(110, 114, 252, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(110, 114, 252, 0.3);
+        }
+
+        .preview-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .preview-content i {
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .form-check-input {
+            cursor: pointer;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
         }
 
         .category-type-selector {
@@ -176,115 +297,5 @@
             background: rgba(var(--bs-success-rgb), 0.2);
             border-color: var(--bs-success);
         }
-
-        .icons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 8px;
-        }
-
-        .icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            min-height: 100px;
-        }
-
-        .icon-item:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .icon-item.selected {
-            background: rgba(var(--bs-primary-rgb), 0.2);
-            border-color: var(--bs-primary);
-        }
-
-        .icon-item i {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            color: var(--bs-light);
-        }
-
-        .icon-item span {
-            font-size: 0.875rem;
-            color: var(--bs-light);
-            text-align: center;
-        }
-
-        .input-group-text {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .form-control {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--bs-primary);
-            box-shadow: none;
-        }
     </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const expenseRadio = document.getElementById('expense');
-            const incomeRadio = document.getElementById('income');
-            const expenseIcons = document.getElementById('expenseIcons');
-            const incomeIcons = document.getElementById('incomeIcons');
-            const iconItems = document.querySelectorAll('.icon-item');
-            const selectedIcon = document.getElementById('selectedIcon');
-
-            // Toggle between expense and income icons
-            expenseRadio.addEventListener('change', function() {
-                if(this.checked) {
-                    expenseIcons.classList.remove('d-none');
-                    incomeIcons.classList.add('d-none');
-                    resetSelection();
-                }
-            });
-
-            incomeRadio.addEventListener('change', function() {
-                if(this.checked) {
-                    incomeIcons.classList.remove('d-none');
-                    expenseIcons.classList.add('d-none');
-                    resetSelection();
-                }
-            });
-
-            // Handle icon selection
-            iconItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    iconItems.forEach(i => i.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedIcon.value = this.getAttribute('data-icon');
-                });
-            });
-
-            function resetSelection() {
-                iconItems.forEach(item => item.classList.remove('selected'));
-                selectedIcon.value = '';
-            }
-
-            // Form validation
-            document.querySelector('form').addEventListener('submit', function(e) {
-                if (!selectedIcon.value) {
-                    e.preventDefault();
-                    alert('Please select an icon for the category');
-                }
-            });
-        });
-    </script>
 }
