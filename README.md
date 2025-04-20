@@ -29,7 +29,9 @@ A cross-platform expense tracking application built with C# and web technologies
    git clone https://github.com/nataliboeva/expense-tracker.git
 
 2. Navigate to the project directory:cd expense-tracker
+
 3.Build the project: dotnet build
+
 4.Run the application: dotnet run
 
 ## Screenshots 📷
