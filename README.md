@@ -1,4 +1,4 @@
-#Expense Tracker
+# Expense Tracker
 A cross-platform expense tracking application built with C# and web technologies. This tool helps users manage their personal finances by recording expenses, categorizing them, and providing insightful visualizations.
 
 ## Features
